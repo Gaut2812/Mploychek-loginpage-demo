@@ -1,9 +1,11 @@
 export interface RecordItem {
   recordId: string;
-  userId: string;
   title: string;
   description: string;
-  accessLevel: 'public' | 'internal' | 'confidential';
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  ownerUserId: string;
+  userId?: string;
+  accessLevel: 'READ' | 'READ/WRITE' | string;
+  status: 'Active' | 'Pending' | 'Approved' | 'Rejected' | string;
+  createdDate: string;
+  createdAt?: string;
 }

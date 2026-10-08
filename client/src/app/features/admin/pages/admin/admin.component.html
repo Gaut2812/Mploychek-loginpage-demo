@@ -18,15 +18,16 @@
           <span>Async Delay:</span>
         </div>
         <div class="delay-buttons">
-          <button type="button" class="delay-btn" [class.active]="selectedDelay === 0" (click)="setDelay(0)">0ms</button>
-          <button type="button" class="delay-btn" [class.active]="selectedDelay === 1000" (click)="setDelay(1000)">1s</button>
-          <button type="button" class="delay-btn delay-demo-highlight" [class.active]="selectedDelay === 3000" (click)="setDelay(3000)">3s Demo</button>
-          <button type="button" class="delay-btn" [class.active]="selectedDelay === 5000" (click)="setDelay(5000)">5s</button>
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 0" [disabled]="isLoading" (click)="setDelay(0)">0ms</button>
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 1000" [disabled]="isLoading" (click)="setDelay(1000)">1s</button>
+          <button type="button" class="delay-btn delay-demo-highlight" [class.active]="selectedDelay === 3000" [disabled]="isLoading" (click)="setDelay(3000)">3s Demo</button>
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 5000" [disabled]="isLoading" (click)="setDelay(5000)">5s</button>
         </div>
         <button type="button" class="btn btn-secondary btn-sm refresh-btn" [disabled]="isLoading" (click)="reloadUsers()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isLoading">
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
           </svg>
+          <span>{{ isLoading ? 'Loading...' : 'Reload' }}</span>
         </button>
       </div>
 
@@ -46,9 +47,12 @@
     <div class="meter-content">
       <span class="status-dot" [ngClass]="isLoading ? 'status-dot-loading' : 'status-dot-success'"></span>
       <span class="status-text">
-        <strong *ngIf="isLoading">Async request in progress:</strong>
-        <strong *ngIf="!isLoading">Directory retrieved:</strong>
-        {{ isLoading ? 'Fetching user records with ' + selectedDelay + 'ms artificial server delay...' : 'Fetched directory in ' + requestDuration + 'ms' }}
+        <strong *ngIf="isLoading">Async request in progress: </strong>
+        <strong *ngIf="!isLoading">Directory retrieved: </strong>
+        {{ isLoading ? loadingMessage : 'Fetched directory in ' + requestDuration + 'ms' }}
+      </span>
+      <span class="meter-spinner" *ngIf="isLoading">
+        <span class="btn-spinner"></span>
       </span>
     </div>
   </div>
@@ -59,7 +63,7 @@
     <div class="users-toolbar">
       <div class="toolbar-title-block">
         <h3 class="toolbar-title">Active Database Directory</h3>
-        <span class="records-count">Direct XML/DynamoDB sync</span>
+        <span class="records-count">Direct XML Storage Sync</span>
       </div>
 
       <div class="toolbar-controls">
@@ -78,8 +82,8 @@
 
         <select class="filter-select" [formControl]="roleFilterControl">
           <option value="ALL">All Roles</option>
-          <option value="GENERAL_USER">General Users</option>
-          <option value="ADMIN">Administrators</option>
+          <option value="General User">General Users</option>
+          <option value="Administrator">Administrators</option>
         </select>
       </div>
     </div>
@@ -94,7 +98,7 @@
             <th>Role</th>
             <th>Department</th>
             <th>Status</th>
-            <th>Created</th>
+            <th>Member Since</th>
             <th class="actions-header">Actions</th>
           </tr>
         </thead>
@@ -126,24 +130,24 @@
             <tr *ngFor="let u of users; trackBy: trackByUserId">
               <td>
                 <div class="user-identity-cell">
-                  <div class="user-avatar-sm" [ngClass]="u.role === 'admin' ? 'avatar-admin' : 'avatar-user'">
-                    {{ u.fullName.substring(0, 2).toUpperCase() }}
+                  <div class="user-avatar-sm" [ngClass]="u.role === 'Administrator' ? 'avatar-admin' : 'avatar-user'">
+                    {{ (u.name || u.fullName || u.userId).substring(0, 2).toUpperCase() }}
                   </div>
                   <div class="user-identity-text">
-                    <span class="user-full-name">{{ u.fullName }}</span>
+                    <span class="user-full-name">{{ u.name || u.fullName }}</span>
                     <span class="user-email-text">{{ u.email }}</span>
                   </div>
                 </div>
               </td>
               <td><span class="font-mono user-id-badge">{{ u.userId }}</span></td>
               <td>
-                <span class="badge" [ngClass]="u.role === 'admin' ? 'badge-warning' : 'badge-info'">
+                <span class="badge" [ngClass]="u.role === 'Administrator' ? 'badge-warning' : 'badge-info'">
                   {{ u.role | roleLabel }}
                 </span>
               </td>
               <td>{{ u.department || 'General' }}</td>
               <td><app-status-badge [status]="u.status"></app-status-badge></td>
-              <td class="date-cell">{{ u.createdAt | date: 'mediumDate' }}</td>
+              <td class="date-cell">{{ (u.memberSince || u.createdAt) | date: 'mediumDate' }}</td>
               <td class="actions-cell">
                 <button
                   type="button"
@@ -246,8 +250,8 @@
           <div class="form-group">
             <label for="modalRole">System Role</label>
             <select id="modalRole" class="form-control" formControlName="role">
-              <option value="general_user">General User</option>
-              <option value="admin">Administrator</option>
+              <option value="General User">General User</option>
+              <option value="Administrator">Administrator</option>
             </select>
           </div>
 
@@ -255,9 +259,9 @@
           <div class="form-group">
             <label for="modalStatus">Account Status</label>
             <select id="modalStatus" class="form-control" formControlName="status">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Suspended">Suspended</option>
             </select>
           </div>
 
@@ -301,8 +305,8 @@
       </div>
 
       <div class="confirm-body">
-        <p>Are you sure you want to delete user <strong>{{ userToDelete?.fullName }}</strong> (ID: <code>{{ userToDelete?.userId }}</code>)?</p>
-        <p class="confirm-warning">This record will be permanently deleted from the database.</p>
+        <p>Are you sure you want to delete user <strong>{{ userToDelete?.name || userToDelete?.fullName }}</strong> (ID: <code>{{ userToDelete?.userId }}</code>)?</p>
+        <p class="confirm-warning">This record will be permanently deleted from the XML database.</p>
       </div>
 
       <div class="modal-footer">

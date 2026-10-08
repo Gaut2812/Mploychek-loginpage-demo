@@ -25,8 +25,13 @@ export class HasRoleDirective implements OnInit {
   }
 
   private updateView(): void {
-    const userRole = this.authService.getUserRole();
-    const canAccess = userRole === this.allowedRole;
+    const userRole = (this.authService.getUserRole() || '').toLowerCase();
+    const target = (this.allowedRole || '').toLowerCase();
+
+    const isAdminTarget = target === 'admin' || target === 'administrator';
+    const isUserAdmin = userRole === 'admin' || userRole === 'administrator';
+
+    const canAccess = isAdminTarget ? isUserAdmin : userRole.includes(target);
 
     if (canAccess && !this.isVisible) {
       this.viewContainer.createEmbeddedView(this.templateRef);

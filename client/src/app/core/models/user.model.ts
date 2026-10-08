@@ -1,28 +1,35 @@
+export type UserRole = 'General User' | 'Administrator';
+
 export interface User {
+  id: string;
   userId: string;
-  role: 'general_user' | 'admin';
+  name: string;
   fullName: string;
   email: string;
+  role: UserRole;
   department: string;
-  status: 'active' | 'inactive' | 'suspended';
+  status: 'Active' | 'Inactive' | 'Suspended';
+  memberSince: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateUserDto {
   userId: string;
-  password: string;
-  role: 'general_user' | 'admin';
-  fullName: string;
+  password?: string;
+  role: UserRole | string;
+  name?: string;
+  fullName?: string;
   email: string;
   department: string;
 }
 
 export interface UpdateUserDto {
+  name?: string;
   fullName?: string;
   email?: string;
   department?: string;
-  role?: 'general_user' | 'admin';
-  status?: 'active' | 'inactive' | 'suspended';
+  role?: UserRole | string;
+  status?: 'Active' | 'Inactive' | 'Suspended';
   password?: string;
 }

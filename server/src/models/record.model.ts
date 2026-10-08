@@ -1,9 +1,12 @@
 export interface Record {
   recordId: string;
-  userId: string;
   title: string;
   description: string;
-  accessLevel: 'public' | 'internal' | 'confidential';
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  ownerUserId: string;
+  accessLevel: 'READ' | 'READ/WRITE' | string;
+  status: 'Active' | 'Pending' | 'Approved' | 'Rejected' | string;
+  createdDate: string;
+  // Aliases for compatibility
+  userId?: string;
+  createdAt?: string;
 }

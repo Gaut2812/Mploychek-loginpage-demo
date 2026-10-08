@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
-import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, switchMap, tap, finalize } from 'rxjs/operators';
+import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
+import { map, debounceTime, distinctUntilChanged, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import { UserService } from '../../../../core/services/user.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { User, CreateUserDto, UpdateUserDto } from '../../../../core/models/user.model';
@@ -23,6 +23,7 @@ export class AdminComponent implements OnInit {
   // Async Processing Status
   isLoading: boolean = false;
   isMutating: boolean = false;
+  loadingMessage: string = 'Loading directory...';
   requestStatus: 'idle' | 'loading' | 'success' | 'error' = 'idle';
   requestDuration: number | null = null;
   private requestStartTimestamp: number = 0;
@@ -61,6 +62,10 @@ export class AdminComponent implements OnInit {
       tap(() => {
         this.isLoading = true;
         this.requestStatus = 'loading';
+        this.loadingMessage =
+          this.selectedDelay > 0
+            ? `Fetching directory from API with ${this.selectedDelay}ms delay...`
+            : 'Loading directory from API...';
         this.requestStartTimestamp = performance.now();
         this.cdr.markForCheck();
       }),
@@ -70,6 +75,11 @@ export class AdminComponent implements OnInit {
             const duration = Math.round(performance.now() - this.requestStartTimestamp);
             this.requestDuration = duration;
             this.requestStatus = 'success';
+          }),
+          catchError(() => {
+            this.requestStatus = 'error';
+            this.toastService.error('Failed to load user directory.');
+            return of([]);
           }),
           finalize(() => {
             this.isLoading = false;
@@ -82,18 +92,22 @@ export class AdminComponent implements OnInit {
     this.users$ = combineLatest([fetchedUsers$, search$, role$]).pipe(
       map(([users, search, roleFilter]) => {
         const query = (search || '').toLowerCase().trim();
-        const role = roleFilter || 'ALL';
+        const role = (roleFilter || 'ALL').toLowerCase();
 
         return users.filter((u) => {
+          const dName = (u.name || u.fullName || '').toLowerCase();
           const matchesQuery =
             !query ||
-            u.fullName.toLowerCase().includes(query) ||
+            dName.includes(query) ||
             u.userId.toLowerCase().includes(query) ||
             u.email.toLowerCase().includes(query) ||
             u.department.toLowerCase().includes(query);
 
+          const uRole = u.role.toLowerCase();
           const matchesRole =
-            role === 'ALL' || u.role.toUpperCase() === role.toUpperCase();
+            role === 'all' ||
+            (role.includes('admin') && uRole.includes('admin')) ||
+            (role.includes('general') && uRole.includes('general'));
 
           return matchesQuery && matchesRole;
         });
@@ -108,17 +122,19 @@ export class AdminComponent implements OnInit {
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       department: ['', [Validators.required]],
-      role: ['general_user', [Validators.required]],
-      status: ['active', [Validators.required]],
+      role: ['General User', [Validators.required]],
+      status: ['Active', [Validators.required]],
     });
   }
 
   setDelay(ms: number): void {
+    if (this.isLoading) return;
     this.selectedDelay = ms;
     this.reloadUsers();
   }
 
   reloadUsers(): void {
+    if (this.isLoading) return;
     this.refreshSubject.next();
   }
 
@@ -131,8 +147,8 @@ export class AdminComponent implements OnInit {
       fullName: '',
       email: '',
       department: '',
-      role: 'general_user',
-      status: 'active',
+      role: 'General User',
+      status: 'Active',
     });
     this.userForm.get('userId')?.enable();
     this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
@@ -147,7 +163,7 @@ export class AdminComponent implements OnInit {
     this.userForm.reset({
       userId: user.userId,
       password: '',
-      fullName: user.fullName,
+      fullName: user.name || user.fullName,
       email: user.email,
       department: user.department,
       role: user.role,
@@ -180,6 +196,7 @@ export class AdminComponent implements OnInit {
       const dto: CreateUserDto = {
         userId: formVal.userId,
         password: formVal.password,
+        name: formVal.fullName,
         fullName: formVal.fullName,
         email: formVal.email,
         department: formVal.department,
@@ -197,8 +214,9 @@ export class AdminComponent implements OnInit {
         .subscribe({
           next: (created) => {
             const elapsed = Math.round(performance.now() - startMs);
+            const dName = created.name || created.fullName;
             this.toastService.success(
-              `User "${created.fullName}" created in ${elapsed}ms`,
+              `User "${dName}" created in ${elapsed}ms`,
               'User Created'
             );
             this.closeModal();
@@ -211,6 +229,7 @@ export class AdminComponent implements OnInit {
     } else {
       // Edit mode
       const dto: UpdateUserDto = {
+        name: formVal.fullName,
         fullName: formVal.fullName,
         email: formVal.email,
         department: formVal.department,
@@ -232,8 +251,9 @@ export class AdminComponent implements OnInit {
         .subscribe({
           next: (updated) => {
             const elapsed = Math.round(performance.now() - startMs);
+            const dName = updated.name || updated.fullName;
             this.toastService.success(
-              `User "${updated.fullName}" updated in ${elapsed}ms`,
+              `User "${dName}" updated in ${elapsed}ms`,
               'User Updated'
             );
             this.closeModal();

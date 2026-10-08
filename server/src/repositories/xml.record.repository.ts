@@ -8,13 +8,16 @@ const DATA_PATH = path.join(__dirname, '..', 'seed', 'data.xml');
 
 interface XmlRecord {
   $: {
-    id: string;
-    userId: string;
-    title: string;
-    description: string;
-    accessLevel: string;
-    status: string;
-    createdAt: string;
+    id?: string;
+    recordId?: string;
+    userId?: string;
+    ownerUserId?: string;
+    title?: string;
+    description?: string;
+    accessLevel?: string;
+    status?: string;
+    createdAt?: string;
+    createdDate?: string;
   };
 }
 
@@ -26,14 +29,21 @@ interface XmlData {
 }
 
 function xmlRecordToRecord(xr: XmlRecord): Record {
+  const attrs = xr.$;
+  const recordId = attrs.recordId || attrs.id || '';
+  const owner = attrs.ownerUserId || attrs.userId || '';
+  const created = attrs.createdDate || attrs.createdAt || new Date().toISOString();
+
   return {
-    recordId: xr.$.id,
-    userId: xr.$.userId,
-    title: xr.$.title,
-    description: xr.$.description,
-    accessLevel: xr.$.accessLevel as Record['accessLevel'],
-    status: xr.$.status as Record['status'],
-    createdAt: xr.$.createdAt,
+    recordId,
+    title: attrs.title || '',
+    description: attrs.description || '',
+    ownerUserId: owner,
+    userId: owner,
+    accessLevel: attrs.accessLevel || 'READ',
+    status: attrs.status || 'Active',
+    createdDate: created,
+    createdAt: created,
   };
 }
 
@@ -48,7 +58,7 @@ export class XmlRecordRepository implements IRecordRepository {
     const records = data.data.records[0]?.record || [];
     return records
       .map(xmlRecordToRecord)
-      .filter((r) => r.userId === userId);
+      .filter((r) => r.ownerUserId === userId || r.userId === userId);
   }
 
   async findAll(): Promise<Record[]> {

@@ -37,7 +37,7 @@
           <button
             type="button"
             class="pill-btn pill-user"
-            (click)="fillDemo('user01', 'User@123', 'general_user')"
+            (click)="fillDemo('user01', 'User@123', 'General User')"
           >
             <span class="pill-dot"></span>
             General User (user01)
@@ -45,12 +45,32 @@
           <button
             type="button"
             class="pill-btn pill-admin"
-            (click)="fillDemo('admin01', 'Admin@123', 'admin')"
+            (click)="fillDemo('admin01', 'Admin@123', 'Administrator')"
           >
             <span class="pill-dot"></span>
-            Admin (admin01)
+            Administrator (admin01)
           </button>
         </div>
+      </div>
+
+      <!-- Server Error Banner -->
+      <div class="error-banner" *ngIf="serverError">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ serverError }}</span>
+      </div>
+
+      <!-- Inconsistent Combination Warning Hint -->
+      <div class="warning-banner" *ngIf="inconsistentWarning && !serverError">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>{{ inconsistentWarning }}</span>
       </div>
 
       <!-- Form -->
@@ -138,12 +158,13 @@
           <div class="role-selector-grid">
             <label
               class="role-card"
-              [class.active]="roleControl?.value === 'general_user'"
+              [class.active]="roleControl?.value === 'General User'"
+              (click)="selectRole('General User')"
             >
               <input
                 type="radio"
                 formControlName="role"
-                value="general_user"
+                value="General User"
                 class="sr-only"
               />
               <div class="role-icon user-icon">
@@ -160,12 +181,13 @@
 
             <label
               class="role-card"
-              [class.active]="roleControl?.value === 'admin'"
+              [class.active]="roleControl?.value === 'Administrator'"
+              (click)="selectRole('Administrator')"
             >
               <input
                 type="radio"
                 formControlName="role"
-                value="admin"
+                value="Administrator"
                 class="sr-only"
               />
               <div class="role-icon admin-icon">
@@ -174,7 +196,7 @@
                 </svg>
               </div>
               <div class="role-info">
-                <span class="role-title">Admin</span>
+                <span class="role-title">Administrator</span>
                 <span class="role-desc">Manage all users & records</span>
               </div>
             </label>

@@ -21,6 +21,7 @@
           type="button"
           class="delay-btn"
           [class.active]="selectedDelay === 0"
+          [disabled]="isLoading"
           (click)="setDelay(0)"
         >
           0ms (Instant)
@@ -29,6 +30,7 @@
           type="button"
           class="delay-btn"
           [class.active]="selectedDelay === 1000"
+          [disabled]="isLoading"
           (click)="setDelay(1000)"
         >
           1000ms
@@ -37,6 +39,7 @@
           type="button"
           class="delay-btn delay-demo-highlight"
           [class.active]="selectedDelay === 3000"
+          [disabled]="isLoading"
           (click)="setDelay(3000)"
         >
           3000ms (Async Demo)
@@ -45,6 +48,7 @@
           type="button"
           class="delay-btn"
           [class.active]="selectedDelay === 5000"
+          [disabled]="isLoading"
           (click)="setDelay(5000)"
         >
           5000ms
@@ -60,7 +64,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isLoading">
           <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
         </svg>
-        <span>{{ isLoading ? 'Fetching...' : 'Reload' }}</span>
+        <span>{{ isLoading ? 'Loading records...' : 'Reload' }}</span>
       </button>
     </div>
   </div>
@@ -70,25 +74,28 @@
     <div class="meter-content">
       <span class="status-dot" [ngClass]="isLoading ? 'status-dot-loading' : 'status-dot-success'"></span>
       <span class="status-text">
-        <strong *ngIf="isLoading">Async request in-flight:</strong>
-        <strong *ngIf="!isLoading">Request completed:</strong>
-        {{ isLoading ? 'Waiting on server response with ' + selectedDelay + 'ms synthetic delay...' : 'Records retrieved in ' + requestDuration + 'ms' }}
+        <strong *ngIf="isLoading">Async request in progress: </strong>
+        <strong *ngIf="!isLoading">Request completed: </strong>
+        {{ isLoading ? loadingMessage : 'Records retrieved in ' + requestDuration + 'ms' }}
+      </span>
+      <span class="meter-spinner" *ngIf="isLoading">
+        <span class="btn-spinner"></span>
       </span>
     </div>
   </div>
 
-  <!-- User Details Card (Requirement 2) -->
+  <!-- User Details Card (Requirement 2 & 4: dynamic from /api/users/me) -->
   <section class="user-card-section">
     <div class="user-card glass-panel" *ngIf="currentUser$ | async as user; else userSkeleton">
       <div class="user-card-header">
-        <div class="user-avatar" [ngClass]="user.role === 'admin' ? 'avatar-admin' : 'avatar-user'">
-          {{ user.fullName.substring(0, 2).toUpperCase() }}
+        <div class="user-avatar" [ngClass]="user.role === 'Administrator' ? 'avatar-admin' : 'avatar-user'">
+          {{ (user.name || user.fullName || user.userId).substring(0, 2).toUpperCase() }}
         </div>
         <div class="user-title-block">
           <div class="name-row">
-            <h2 class="user-full-name">{{ user.fullName }}</h2>
+            <h2 class="user-full-name">{{ user.name || user.fullName }}</h2>
             <app-status-badge [status]="user.status"></app-status-badge>
-            <span class="badge" [ngClass]="user.role === 'admin' ? 'badge-warning' : 'badge-info'">
+            <span class="badge" [ngClass]="user.role === 'Administrator' ? 'badge-warning' : 'badge-info'">
               {{ user.role | roleLabel }}
             </span>
           </div>
@@ -103,7 +110,7 @@
         </div>
         <div class="info-cell">
           <span class="cell-label">Department</span>
-          <span class="cell-value">{{ user.department || 'Not Specified' }}</span>
+          <span class="cell-value">{{ user.department || 'General' }}</span>
         </div>
         <div class="info-cell">
           <span class="cell-label">System Role</span>
@@ -111,7 +118,7 @@
         </div>
         <div class="info-cell">
           <span class="cell-label">Member Since</span>
-          <span class="cell-value">{{ user.createdAt | date: 'mediumDate' }}</span>
+          <span class="cell-value">{{ (user.memberSince || user.createdAt) | date: 'mediumDate' }}</span>
         </div>
       </div>
     </div>
@@ -136,35 +143,35 @@
   <!-- Access Level Context Banner -->
   <div
     class="access-scope-banner"
-    [ngClass]="(currentUser$ | async)?.role === 'admin' ? 'banner-admin' : 'banner-user'"
+    [ngClass]="(currentUser$ | async)?.role === 'Administrator' ? 'banner-admin' : 'banner-user'"
     *ngIf="currentUser$ | async as user"
   >
     <div class="banner-icon">
-      <svg *ngIf="user.role === 'admin'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg *ngIf="user.role === 'Administrator'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
       </svg>
-      <svg *ngIf="user.role !== 'admin'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg *ngIf="user.role !== 'Administrator'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
     </div>
     <div class="banner-text">
-      <span class="banner-title" *ngIf="user.role === 'admin'">
+      <span class="banner-title" *ngIf="user.role === 'Administrator'">
         Elevated Access Level: Administrator Scope Active
       </span>
-      <span class="banner-title" *ngIf="user.role !== 'admin'">
+      <span class="banner-title" *ngIf="user.role !== 'Administrator'">
         Standard Access Level: General User Scope Active
       </span>
-      <p class="banner-desc" *ngIf="user.role === 'admin'">
+      <p class="banner-desc" *ngIf="user.role === 'Administrator'">
         As an <strong>Administrator</strong>, you have global visibility. The API returns records belonging to <strong>all users</strong> across the organization.
       </p>
-      <p class="banner-desc" *ngIf="user.role !== 'admin'">
+      <p class="banner-desc" *ngIf="user.role !== 'Administrator'">
         As a <strong>General User</strong>, access is restricted to your own personal profile. The API isolates data so you only view records tagged to user ID: <code>{{ user.userId }}</code>.
       </p>
     </div>
   </div>
 
-  <!-- Records Table Section (Requirement 2 & 5) -->
+  <!-- Records Table Section (Requirement 5, 6, 7) -->
   <section class="records-section glass-panel">
     <!-- Table Toolbar -->
     <div class="records-toolbar">
@@ -191,6 +198,8 @@
         <!-- Access Level Dropdown -->
         <select class="filter-select" [formControl]="accessFilterControl">
           <option value="ALL">All Access Levels</option>
+          <option value="READ">READ</option>
+          <option value="READ/WRITE">READ/WRITE</option>
           <option value="PUBLIC">Public</option>
           <option value="INTERNAL">Internal</option>
           <option value="CONFIDENTIAL">Confidential</option>
@@ -237,7 +246,7 @@
                 <div class="record-desc">{{ item.description }}</div>
               </td>
               <td>
-                <span class="user-pill font-mono">{{ item.userId }}</span>
+                <span class="user-pill font-mono">{{ item.ownerUserId || item.userId }}</span>
               </td>
               <td>
                 <app-status-badge [status]="item.accessLevel"></app-status-badge>
@@ -245,7 +254,7 @@
               <td>
                 <app-status-badge [status]="item.status"></app-status-badge>
               </td>
-              <td class="date-cell">{{ item.createdAt | date: 'mediumDate' }}</td>
+              <td class="date-cell">{{ (item.createdDate || item.createdAt) | date: 'mediumDate' }}</td>
             </tr>
 
             <!-- Empty State -->

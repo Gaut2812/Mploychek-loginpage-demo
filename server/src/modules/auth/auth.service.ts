@@ -1,16 +1,17 @@
 import { IUserRepository } from '../../repositories/repository.interface';
 import { comparePassword } from '../../utils/password.util';
 import { signToken } from '../../utils/jwt.util';
-import { toUserResponse, UserResponse } from '../../models/user.model';
+import { toUserResponse, UserResponse, normalizeRole } from '../../models/user.model';
 import { ApiError } from '../../utils/api-error';
 
 export interface LoginRequest {
   userId: string;
   password: string;
-  role: 'general_user' | 'admin';
+  role: string;
 }
 
 export interface LoginResponse {
+  success: boolean;
   token: string;
   user: UserResponse;
 }
@@ -23,26 +24,37 @@ export class AuthService {
       throw new ApiError(400, 'User ID, password, and role are required.');
     }
 
-    const user = await this.userRepo.findById(dto.userId);
+    const user = await this.userRepo.findById(dto.userId.trim());
 
     if (!user) {
-      throw new ApiError(401, 'Invalid credentials.');
+      throw new ApiError(401, 'Invalid user ID. User not found.');
     }
 
     const passwordValid = await comparePassword(dto.password, user.passwordHash);
     if (!passwordValid) {
-      throw new ApiError(401, 'Invalid credentials.');
+      throw new ApiError(401, 'Invalid password.');
     }
 
-    if (user.role !== dto.role) {
-      throw new ApiError(401, 'Invalid role for this user.');
+    const userRole = normalizeRole(user.role);
+    const requestedRole = normalizeRole(dto.role);
+
+    if (userRole !== requestedRole) {
+      throw new ApiError(
+        401,
+        `Incorrect role. User "${dto.userId}" is registered as "${userRole}", not "${dto.role}".`
+      );
     }
 
-    if (user.status !== 'active') {
-      throw new ApiError(403, 'Account is not active.');
+    if (user.status && user.status.toLowerCase() !== 'active') {
+      throw new ApiError(403, `Account is currently ${user.status}.`);
     }
 
-    const token = signToken({ userId: user.userId, role: user.role });
-    return { token, user: toUserResponse(user) };
+    const token = signToken({ userId: user.userId, role: userRole });
+
+    return {
+      success: true,
+      token,
+      user: toUserResponse(user),
+    };
   }
 }

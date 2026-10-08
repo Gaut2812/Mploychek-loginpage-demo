@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <data>
   <users>
-    <user id="admin01" password="$2a$10$HyU5D65BKKcwJPULk8hn9e/V7M.6Aa2gP0x7xZlrTRuxVCidd6Od2" role="admin" fullName="Priya Sharma" email="priya.sharma@mploychek.com" department="IT Administration" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
-    <user id="user01" password="$2a$10$yQJWnPsUhk1KSvq75FsBSuOVUrPPaE//cpE2CoCIsYCm6/7jcayTC" role="general_user" fullName="Rahul Verma" email="rahul.verma@mploychek.com" department="Engineering" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
-    <user id="user02" password="$2a$10$bejeh.jmGfNC2Y7B.qmGFu7WPLi1kjTzlyREDZqRDvPYYyAYHkTd2" role="general_user" fullName="Ananya Gupta" email="ananya.gupta@mploychek.com" department="Marketing" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
+    <user id="admin01" userId="admin01" password="$2a$10$owtsYdSZKk8Ddnv208TbUespOqfPEan0ScwrhmPFX/gbZK9XQa93." role="Administrator" name="Priya Sharma" fullName="Priya Sharma" email="priya.sharma@mploychek.com" department="IT Administration" status="Active" memberSince="2022-08-01" createdAt="2022-08-01T09:00:00.000Z" updatedAt="2026-10-08T10:22:39.637Z"/>
+    <user id="user01" userId="user01" password="$2a$10$cSVordQbDuH5l9jItK2o6OeOcHpBq6liMNKtIhU5RtQw45dRS3sTe" role="General User" name="Rahul Verma" fullName="Rahul Verma" email="rahul.verma@mploychek.com" department="Engineering" status="Active" memberSince="2023-01-15" createdAt="2023-01-15T10:30:00.000Z" updatedAt="2026-10-08T10:22:39.639Z"/>
+    <user id="user02" userId="user02" password="$2a$10$7JdbHL7F0btSbPT3NvmMF.52LRVgCQsI0gxIgadw87jdzVq6WGaJC" role="General User" name="Ananya Gupta" fullName="Ananya Gupta" email="ananya.gupta@mploychek.com" department="Marketing" status="Active" memberSince="2023-04-10" createdAt="2023-04-10T11:15:00.000Z" updatedAt="2026-10-08T10:22:39.639Z"/>
   </users>
   <records>
-    <record id="REC001" userId="user01" title="Q3 Performance Review" description="Quarterly performance assessment for Engineering team" accessLevel="internal" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC002" userId="user01" title="Leave Request - October" description="Annual leave request for Oct 15-20" accessLevel="public" status="pending" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC003" userId="user01" title="Training Completion: AWS Cert" description="AWS Solutions Architect certification completed" accessLevel="internal" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC004" userId="user02" title="Campaign Budget Report" description="Q3 marketing campaign budget analysis" accessLevel="confidential" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC005" userId="user02" title="Brand Guidelines Update" description="Updated brand guidelines v2.1" accessLevel="public" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC006" userId="admin01" title="System Audit Log - September" description="Monthly system access audit report" accessLevel="confidential" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
-    <record id="REC007" userId="admin01" title="User Access Review" description="Quarterly user access permissions review" accessLevel="confidential" status="pending" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC-001" recordId="REC-001" userId="user01" ownerUserId="user01" title="Employee Performance Review" description="Annual engineering performance milestone evaluation" accessLevel="READ" status="Active" createdDate="2024-01-10" createdAt="2024-01-10T08:00:00.000Z"/>
+    <record id="REC-002" recordId="REC-002" userId="user01" ownerUserId="user01" title="Engineering Evaluation" description="Technical architecture and code quality audit report" accessLevel="READ" status="Active" createdDate="2024-02-14" createdAt="2024-02-14T14:20:00.000Z"/>
+    <record id="REC-003" recordId="REC-003" userId="user02" ownerUserId="user02" title="HR Performance Report" description="Marketing operations Q1 staffing and review log" accessLevel="READ" status="Active" createdDate="2024-03-01" createdAt="2024-03-01T09:45:00.000Z"/>
+    <record id="REC-004" recordId="REC-004" userId="admin01" ownerUserId="admin01" title="Organization Compliance Report" description="Enterprise-wide security access and compliance log" accessLevel="READ/WRITE" status="Active" createdDate="2024-03-15" createdAt="2024-03-15T16:00:00.000Z"/>
+    <record id="REC-005" recordId="REC-005" userId="user01" ownerUserId="user01" title="Cloud Infrastructure Assessment" description="Multi-region resilience and failover testing report" accessLevel="READ" status="Active" createdDate="2024-04-02" createdAt="2024-04-02T10:10:00.000Z"/>
+    <record id="REC-006" recordId="REC-006" userId="admin01" ownerUserId="admin01" title="Security &amp; Penetration Testing Results" description="Bi-annual network and API vulnerability audit findings" accessLevel="READ/WRITE" status="Active" createdDate="2024-04-18" createdAt="2024-04-18T13:30:00.000Z"/>
   </records>
 </data>

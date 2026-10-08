@@ -1,10 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
-import { RoleGuard } from './core/guards/role.guard';
+import { AdminGuard } from './core/guards/admin.guard';
 import { LayoutComponent } from './layout/layout.component';
 
 const routes: Routes = [
+  {
+    path: 'login',
+    redirectTo: 'auth/login',
+    pathMatch: 'full',
+  },
   {
     path: 'auth',
     loadChildren: () =>
@@ -26,8 +31,14 @@ const routes: Routes = [
           import('./features/dashboard/dashboard.module').then((m) => m.DashboardModule),
       },
       {
+        path: 'admin/users',
+        canActivate: [AdminGuard],
+        loadChildren: () =>
+          import('./features/admin/admin.module').then((m) => m.AdminModule),
+      },
+      {
         path: 'admin',
-        canActivate: [RoleGuard],
+        canActivate: [AdminGuard],
         loadChildren: () =>
           import('./features/admin/admin.module').then((m) => m.AdminModule),
       },

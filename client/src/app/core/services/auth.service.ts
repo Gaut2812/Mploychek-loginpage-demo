@@ -55,7 +55,7 @@ export class AuthService {
     }
   }
 
-  getUserRole(): 'general_user' | 'admin' | null {
+  getUserRole(): string | null {
     const token = this.getToken();
     if (!token) return null;
     try {
@@ -64,6 +64,13 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+    if (!role) return false;
+    const r = role.toLowerCase();
+    return r === 'administrator' || r === 'admin';
   }
 
   private decodeToken(token: string): any {

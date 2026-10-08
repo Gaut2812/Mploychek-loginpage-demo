@@ -1,22 +1,26 @@
 import fs from 'fs';
 import path from 'path';
 import { parseStringPromise, Builder } from 'xml2js';
-import { User } from '../models/user.model';
+import { User, normalizeRole } from '../models/user.model';
 import { IUserRepository } from './repository.interface';
 
 const DATA_PATH = path.join(__dirname, '..', 'seed', 'data.xml');
 
 interface XmlUser {
   $: {
-    id: string;
-    password: string;
-    role: string;
-    fullName: string;
-    email: string;
-    department: string;
-    status: string;
-    createdAt: string;
-    updatedAt: string;
+    id?: string;
+    userId?: string;
+    password?: string;
+    passwordHash?: string;
+    role?: string;
+    name?: string;
+    fullName?: string;
+    email?: string;
+    department?: string;
+    status?: string;
+    memberSince?: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
 }
 
@@ -28,28 +32,39 @@ interface XmlData {
 }
 
 function xmlUserToUser(xu: XmlUser): User {
+  const attrs = xu.$;
+  const uid = attrs.id || attrs.userId || '';
+  const dName = attrs.name || attrs.fullName || uid;
+  const created = attrs.memberSince || attrs.createdAt || new Date().toISOString();
+
   return {
-    userId: xu.$.id,
-    passwordHash: xu.$.password,
-    role: xu.$.role as User['role'],
-    fullName: xu.$.fullName,
-    email: xu.$.email,
-    department: xu.$.department,
-    status: xu.$.status as User['status'],
-    createdAt: xu.$.createdAt,
-    updatedAt: xu.$.updatedAt,
+    id: uid,
+    userId: uid,
+    name: dName,
+    fullName: dName,
+    email: attrs.email || '',
+    passwordHash: attrs.password || attrs.passwordHash || '',
+    role: normalizeRole(attrs.role || 'General User'),
+    department: attrs.department || 'General',
+    status: (attrs.status || 'Active') as User['status'],
+    memberSince: created,
+    createdAt: attrs.createdAt || created,
+    updatedAt: attrs.updatedAt || created,
   };
 }
 
 function userToXmlAttrs(user: User): XmlUser['$'] {
   return {
     id: user.userId,
+    userId: user.userId,
     password: user.passwordHash,
-    role: user.role,
-    fullName: user.fullName,
+    role: normalizeRole(user.role),
+    name: user.name || user.fullName,
+    fullName: user.fullName || user.name,
     email: user.email,
     department: user.department,
-    status: user.status,
+    status: user.status || 'Active',
+    memberSince: user.memberSince || user.createdAt,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -70,7 +85,7 @@ export class XmlUserRepository implements IUserRepository {
   async findById(userId: string): Promise<User | null> {
     const data = await readXml();
     const users = data.data.users[0]?.user || [];
-    const found = users.find((u) => u.$.id === userId);
+    const found = users.find((u) => (u.$.id || u.$.userId) === userId);
     return found ? xmlUserToUser(found) : null;
   }
 
@@ -96,7 +111,7 @@ export class XmlUserRepository implements IUserRepository {
   async update(userId: string, updates: Partial<User>): Promise<User | null> {
     const data = await readXml();
     const users = data.data.users[0]?.user || [];
-    const index = users.findIndex((u) => u.$.id === userId);
+    const index = users.findIndex((u) => (u.$.id || u.$.userId) === userId);
     if (index === -1) return null;
 
     const existing = xmlUserToUser(users[index]);
@@ -109,7 +124,7 @@ export class XmlUserRepository implements IUserRepository {
   async delete(userId: string): Promise<boolean> {
     const data = await readXml();
     const users = data.data.users[0]?.user || [];
-    const index = users.findIndex((u) => u.$.id === userId);
+    const index = users.findIndex((u) => (u.$.id || u.$.userId) === userId);
     if (index === -1) return false;
 
     users.splice(index, 1);

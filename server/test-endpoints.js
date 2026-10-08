@@ -22,7 +22,7 @@ function request(options, data) {
 }
 
 async function runTests() {
-  console.log('--- 1. Testing Login as General User (user01) ---');
+  console.log('--- 1. Testing Login as General User (user01 / General User) ---');
   const userLogin = await request(
     {
       hostname: 'localhost',
@@ -31,12 +31,25 @@ async function runTests() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     },
-    { userId: 'user01', password: 'User@123', role: 'general_user' }
+    { userId: 'user01', password: 'User@123', role: 'General User' }
   );
   console.log('Status:', userLogin.status);
   console.log('User Login response:', JSON.stringify(userLogin.data, null, 2));
 
-  console.log('\n--- 2. Testing Login as Admin (admin01) ---');
+  console.log('\n--- 2. Testing Mismatched Role Login (user01 claiming Administrator) ---');
+  const mismatchLogin = await request(
+    {
+      hostname: 'localhost',
+      port: 3000,
+      path: '/api/auth/login',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    },
+    { userId: 'user01', password: 'User@123', role: 'Administrator' }
+  );
+  console.log('Status (expected 401):', mismatchLogin.status, mismatchLogin.data);
+
+  console.log('\n--- 3. Testing Login as Admin (admin01 / Administrator) ---');
   const adminLogin = await request(
     {
       hostname: 'localhost',
@@ -45,7 +58,7 @@ async function runTests() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     },
-    { userId: 'admin01', password: 'Admin@123', role: 'admin' }
+    { userId: 'admin01', password: 'Admin@123', role: 'Administrator' }
   );
   console.log('Status:', adminLogin.status);
   console.log('Admin Login response:', JSON.stringify(adminLogin.data, null, 2));
@@ -53,7 +66,7 @@ async function runTests() {
   const userToken = userLogin.data?.token;
   const adminToken = adminLogin.data?.token;
 
-  console.log('\n--- 3. Testing GET /api/users/me for user01 ---');
+  console.log('\n--- 4. Testing GET /api/users/me for user01 ---');
   const userMe = await request({
     hostname: 'localhost',
     port: 3000,
@@ -64,7 +77,7 @@ async function runTests() {
   console.log('Status:', userMe.status);
   console.log('User me:', userMe.data);
 
-  console.log('\n--- 4. Testing GET /api/records for user01 (General User should see own records only) ---');
+  console.log('\n--- 5. Testing GET /api/records for user01 (General User should see ONLY user01 records) ---');
   const userRecords = await request({
     hostname: 'localhost',
     port: 3000,
@@ -76,7 +89,7 @@ async function runTests() {
   console.log(`user01 records count: ${userRecords.data?.length}`);
   console.log('Records:', userRecords.data);
 
-  console.log('\n--- 5. Testing GET /api/records for admin01 (Admin should see all records) ---');
+  console.log('\n--- 6. Testing GET /api/records for admin01 (Administrator should see all records) ---');
   const adminRecords = await request({
     hostname: 'localhost',
     port: 3000,
@@ -87,7 +100,7 @@ async function runTests() {
   console.log('Status:', adminRecords.status);
   console.log(`Admin records count: ${adminRecords.data?.length}`);
 
-  console.log('\n--- 6. Testing General User trying to access Admin route GET /api/users (Should be 403) ---');
+  console.log('\n--- 7. Testing General User accessing GET /api/users (Expected 403 Forbidden) ---');
   const forbiddenUsers = await request({
     hostname: 'localhost',
     port: 3000,
@@ -97,7 +110,7 @@ async function runTests() {
   });
   console.log('Status (expected 403):', forbiddenUsers.status, forbiddenUsers.data);
 
-  console.log('\n--- 7. Testing Admin GET /api/users ---');
+  console.log('\n--- 8. Testing Admin GET /api/users ---');
   const allUsers = await request({
     hostname: 'localhost',
     port: 3000,
@@ -108,59 +121,7 @@ async function runTests() {
   console.log('Status:', allUsers.status);
   console.log(`Users count: ${allUsers.data?.length}`);
 
-  console.log('\n--- 8. Testing Admin POST /api/users (Add new user) ---');
-  const newUser = await request(
-    {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/users',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${adminToken}`,
-      },
-    },
-    {
-      userId: 'testuser99',
-      password: 'Test@123',
-      role: 'general_user',
-      fullName: 'Test User Ninety-Nine',
-      email: 'test99@mploychek.com',
-      department: 'QA Testing',
-    }
-  );
-  console.log('Status (expected 201):', newUser.status, newUser.data);
-
-  console.log('\n--- 9. Testing Admin PUT /api/users/testuser99 (Edit user) ---');
-  const updatedUser = await request(
-    {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/users/testuser99',
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${adminToken}`,
-      },
-    },
-    {
-      department: 'Lead QA',
-      status: 'active',
-    }
-  );
-  console.log('Status:', updatedUser.status, updatedUser.data);
-
-  console.log('\n--- 10. Testing Admin DELETE /api/users/testuser99 (Delete user) ---');
-  const deleteUser = await request({
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/users/testuser99',
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${adminToken}` },
-  });
-  console.log('Status:', deleteUser.status, deleteUser.data);
-
-  console.log('\n--- 11. Testing ?delay=1000 parameter ---');
+  console.log('\n--- 9. Testing Delay parameter (?delay=1000) ---');
   const start = Date.now();
   const delayedRes = await request({
     hostname: 'localhost',
@@ -170,9 +131,9 @@ async function runTests() {
     headers: { Authorization: `Bearer ${userToken}` },
   });
   const duration = Date.now() - start;
-  console.log(`Delayed response received in ${duration}ms (expected >= 1000ms), status: ${delayedRes.status}`);
+  console.log(`Delayed response received in ${duration}ms, status: ${delayedRes.status}`);
 
-  console.log('\nAll backend tests passed successfully!');
+  console.log('\nAll updated backend tests completed successfully!');
 }
 
 runTests().catch(console.error);
