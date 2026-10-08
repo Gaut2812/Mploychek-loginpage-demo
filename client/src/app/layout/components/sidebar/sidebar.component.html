@@ -1,0 +1,66 @@
+<aside class="sidebar glass-panel">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-badge">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <span class="brand-title">MployChek</span>
+      <span class="brand-version">v2.4 Enterprise</span>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">MAIN WORKSPACE</div>
+
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-link"
+    >
+      <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"/>
+        <rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/>
+      </svg>
+      <span>Records Dashboard</span>
+    </a>
+
+    <!-- Admin link only visible to admin via *hasRole directive -->
+    <div class="nav-section-label" *hasRole="'admin'">ADMINISTRATION</div>
+
+    <a
+      *hasRole="'admin'"
+      routerLink="/admin"
+      routerLinkActive="active"
+      class="nav-link admin-nav-link"
+    >
+      <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span>User Management</span>
+      <span class="badge badge-warning admin-pill">Admin</span>
+    </a>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer" *ngIf="currentUser$ | async as user">
+    <div class="system-status">
+      <span class="status-key">Role:</span>
+      <span class="status-val">{{ user.role | roleLabel }}</span>
+    </div>
+    <div class="system-status">
+      <span class="status-key">Dept:</span>
+      <span class="status-val">{{ user.department || 'All' }}</span>
+    </div>
+  </div>
+</aside>

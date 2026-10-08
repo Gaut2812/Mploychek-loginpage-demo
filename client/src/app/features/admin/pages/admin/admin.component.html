@@ -1,0 +1,322 @@
+<div class="admin-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Enterprise User Management</h1>
+      <p class="page-subtitle">Administer directory accounts, access roles, and permissions</p>
+    </div>
+
+    <!-- Actions & Delay Simulator -->
+    <div class="header-actions">
+      <!-- Latency Simulator -->
+      <div class="delay-controller glass-panel">
+        <div class="delay-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span>Async Delay:</span>
+        </div>
+        <div class="delay-buttons">
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 0" (click)="setDelay(0)">0ms</button>
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 1000" (click)="setDelay(1000)">1s</button>
+          <button type="button" class="delay-btn delay-demo-highlight" [class.active]="selectedDelay === 3000" (click)="setDelay(3000)">3s Demo</button>
+          <button type="button" class="delay-btn" [class.active]="selectedDelay === 5000" (click)="setDelay(5000)">5s</button>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm refresh-btn" [disabled]="isLoading" (click)="reloadUsers()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="isLoading">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Add User Button -->
+      <button type="button" class="btn btn-primary" (click)="openCreateModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Add New User</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Meter Bar -->
+  <div class="status-meter-bar" *ngIf="requestStatus !== 'idle'">
+    <div class="meter-content">
+      <span class="status-dot" [ngClass]="isLoading ? 'status-dot-loading' : 'status-dot-success'"></span>
+      <span class="status-text">
+        <strong *ngIf="isLoading">Async request in progress:</strong>
+        <strong *ngIf="!isLoading">Directory retrieved:</strong>
+        {{ isLoading ? 'Fetching user records with ' + selectedDelay + 'ms artificial server delay...' : 'Fetched directory in ' + requestDuration + 'ms' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Users Table Section -->
+  <section class="users-section glass-panel">
+    <!-- Toolbar -->
+    <div class="users-toolbar">
+      <div class="toolbar-title-block">
+        <h3 class="toolbar-title">Active Database Directory</h3>
+        <span class="records-count">Direct XML/DynamoDB sync</span>
+      </div>
+
+      <div class="toolbar-controls">
+        <div class="search-box">
+          <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            class="search-input"
+            [formControl]="searchControl"
+            placeholder="Search by name, ID, or email..."
+          />
+        </div>
+
+        <select class="filter-select" [formControl]="roleFilterControl">
+          <option value="ALL">All Roles</option>
+          <option value="GENERAL_USER">General Users</option>
+          <option value="ADMIN">Administrators</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>User ID</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th class="actions-header">Actions</th>
+          </tr>
+        </thead>
+
+        <!-- Skeletons while loading -->
+        <tbody *ngIf="isLoading">
+          <tr *ngFor="let s of [1, 2, 3, 4]" class="skeleton-row">
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <app-skeleton-loader width="36px" height="36px" borderRadius="50%"></app-skeleton-loader>
+                <div>
+                  <app-skeleton-loader width="140px" height="16px" margin="0 0 4px 0"></app-skeleton-loader>
+                  <app-skeleton-loader width="180px" height="12px"></app-skeleton-loader>
+                </div>
+              </div>
+            </td>
+            <td><app-skeleton-loader width="70px" height="18px"></app-skeleton-loader></td>
+            <td><app-skeleton-loader width="85px" height="22px" borderRadius="12px"></app-skeleton-loader></td>
+            <td><app-skeleton-loader width="90px" height="18px"></app-skeleton-loader></td>
+            <td><app-skeleton-loader width="65px" height="22px" borderRadius="12px"></app-skeleton-loader></td>
+            <td><app-skeleton-loader width="80px" height="18px"></app-skeleton-loader></td>
+            <td><app-skeleton-loader width="70px" height="28px"></app-skeleton-loader></td>
+          </tr>
+        </tbody>
+
+        <!-- Data Rows -->
+        <tbody *ngIf="!isLoading">
+          <ng-container *ngIf="users$ | async as users">
+            <tr *ngFor="let u of users; trackBy: trackByUserId">
+              <td>
+                <div class="user-identity-cell">
+                  <div class="user-avatar-sm" [ngClass]="u.role === 'admin' ? 'avatar-admin' : 'avatar-user'">
+                    {{ u.fullName.substring(0, 2).toUpperCase() }}
+                  </div>
+                  <div class="user-identity-text">
+                    <span class="user-full-name">{{ u.fullName }}</span>
+                    <span class="user-email-text">{{ u.email }}</span>
+                  </div>
+                </div>
+              </td>
+              <td><span class="font-mono user-id-badge">{{ u.userId }}</span></td>
+              <td>
+                <span class="badge" [ngClass]="u.role === 'admin' ? 'badge-warning' : 'badge-info'">
+                  {{ u.role | roleLabel }}
+                </span>
+              </td>
+              <td>{{ u.department || 'General' }}</td>
+              <td><app-status-badge [status]="u.status"></app-status-badge></td>
+              <td class="date-cell">{{ u.createdAt | date: 'mediumDate' }}</td>
+              <td class="actions-cell">
+                <button
+                  type="button"
+                  class="action-btn edit-btn"
+                  (click)="openEditModal(u)"
+                  title="Edit user"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn delete-btn"
+                  (click)="openDeleteConfirm(u)"
+                  title="Delete user"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="users.length === 0">
+              <td colspan="7">
+                <app-empty-state
+                  title="No users found"
+                  description="No accounts match your query or filter criteria."
+                ></app-empty-state>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Add / Edit Modal Dialog -->
+  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-card glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ modalMode === 'create' ? 'Create New Directory User' : 'Edit User Profile' }}</h3>
+        <button type="button" class="close-btn" (click)="closeModal()">&times;</button>
+      </div>
+
+      <form [formGroup]="userForm" (ngSubmit)="onSaveUser()" class="modal-form">
+        <div class="form-grid">
+          <!-- User ID -->
+          <div class="form-group">
+            <label for="modalUserId">User ID</label>
+            <input
+              id="modalUserId"
+              type="text"
+              class="form-control"
+              formControlName="userId"
+              placeholder="e.g. user03"
+            />
+          </div>
+
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="modalFullName">Full Name</label>
+            <input
+              id="modalFullName"
+              type="text"
+              class="form-control"
+              formControlName="fullName"
+              placeholder="e.g. Sarah Connor"
+            />
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label for="modalEmail">Email Address</label>
+            <input
+              id="modalEmail"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="name@mploychek.com"
+            />
+          </div>
+
+          <!-- Department -->
+          <div class="form-group">
+            <label for="modalDept">Department</label>
+            <input
+              id="modalDept"
+              type="text"
+              class="form-control"
+              formControlName="department"
+              placeholder="e.g. Finance / Security"
+            />
+          </div>
+
+          <!-- Role -->
+          <div class="form-group">
+            <label for="modalRole">System Role</label>
+            <select id="modalRole" class="form-control" formControlName="role">
+              <option value="general_user">General User</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label for="modalStatus">Account Status</label>
+            <select id="modalStatus" class="form-control" formControlName="status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+            </select>
+          </div>
+
+          <!-- Password (Required for create, optional for edit) -->
+          <div class="form-group full-width">
+            <label for="modalPass">
+              {{ modalMode === 'create' ? 'Initial Password' : 'Reset Password (leave blank to keep current)' }}
+            </label>
+            <input
+              id="modalPass"
+              type="password"
+              class="form-control"
+              formControlName="password"
+              placeholder="Minimum 6 characters"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isMutating">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isMutating">
+            <span *ngIf="!isMutating">{{ modalMode === 'create' ? 'Create User' : 'Save Changes' }}</span>
+            <span *ngIf="isMutating" class="spinner-label">
+              <span class="btn-spinner"></span>
+              Saving with {{ selectedDelay }}ms delay...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal Dialog -->
+  <div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+    <div class="modal-card modal-confirm glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title modal-danger-title">Confirm User Deletion</h3>
+        <button type="button" class="close-btn" (click)="closeDeleteModal()">&times;</button>
+      </div>
+
+      <div class="confirm-body">
+        <p>Are you sure you want to delete user <strong>{{ userToDelete?.fullName }}</strong> (ID: <code>{{ userToDelete?.userId }}</code>)?</p>
+        <p class="confirm-warning">This record will be permanently deleted from the database.</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()" [disabled]="isMutating">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isMutating">
+          <span *ngIf="!isMutating">Delete User</span>
+          <span *ngIf="isMutating" class="spinner-label">
+            <span class="btn-spinner"></span>
+            Deleting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

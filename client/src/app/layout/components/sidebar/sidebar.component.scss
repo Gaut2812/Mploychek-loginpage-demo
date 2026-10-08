@@ -1,0 +1,132 @@
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+
+  .brand-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-heading);
+    }
+
+    .brand-version {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+  }
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+
+  .nav-section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    padding: 12px 12px 6px;
+    margin-top: 8px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+
+    .nav-icon {
+      color: var(--text-dim);
+      transition: color var(--transition-fast);
+    }
+
+    &:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+
+      .nav-icon {
+        color: var(--color-primary);
+      }
+    }
+
+    &.active {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+      font-weight: 600;
+
+      .nav-icon {
+        color: var(--color-primary);
+      }
+    }
+
+    .admin-pill {
+      margin-left: auto;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+    }
+  }
+}
+
+.sidebar-footer {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .system-status {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.775rem;
+
+    .status-key {
+      color: var(--text-dim);
+    }
+
+    .status-val {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+  }
+}

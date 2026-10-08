@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data>
+  <users>
+    <user id="admin01" password="$2a$10$HyU5D65BKKcwJPULk8hn9e/V7M.6Aa2gP0x7xZlrTRuxVCidd6Od2" role="admin" fullName="Priya Sharma" email="priya.sharma@mploychek.com" department="IT Administration" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
+    <user id="user01" password="$2a$10$yQJWnPsUhk1KSvq75FsBSuOVUrPPaE//cpE2CoCIsYCm6/7jcayTC" role="general_user" fullName="Rahul Verma" email="rahul.verma@mploychek.com" department="Engineering" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
+    <user id="user02" password="$2a$10$bejeh.jmGfNC2Y7B.qmGFu7WPLi1kjTzlyREDZqRDvPYYyAYHkTd2" role="general_user" fullName="Ananya Gupta" email="ananya.gupta@mploychek.com" department="Marketing" status="active" createdAt="2026-10-08T05:14:42.776Z" updatedAt="2026-10-08T05:14:42.776Z"/>
+  </users>
+  <records>
+    <record id="REC001" userId="user01" title="Q3 Performance Review" description="Quarterly performance assessment for Engineering team" accessLevel="internal" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC002" userId="user01" title="Leave Request - October" description="Annual leave request for Oct 15-20" accessLevel="public" status="pending" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC003" userId="user01" title="Training Completion: AWS Cert" description="AWS Solutions Architect certification completed" accessLevel="internal" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC004" userId="user02" title="Campaign Budget Report" description="Q3 marketing campaign budget analysis" accessLevel="confidential" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC005" userId="user02" title="Brand Guidelines Update" description="Updated brand guidelines v2.1" accessLevel="public" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC006" userId="admin01" title="System Audit Log - September" description="Monthly system access audit report" accessLevel="confidential" status="approved" createdAt="2026-10-08T05:14:42.776Z"/>
+    <record id="REC007" userId="admin01" title="User Access Review" description="Quarterly user access permissions review" accessLevel="confidential" status="pending" createdAt="2026-10-08T05:14:42.776Z"/>
+  </records>
+</data>
