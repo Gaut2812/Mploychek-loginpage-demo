@@ -4,7 +4,24 @@ import { parseStringPromise, Builder } from 'xml2js';
 import { User, normalizeRole } from '../models/user.model';
 import { IUserRepository } from './repository.interface';
 
-const DATA_PATH = path.join(__dirname, '..', 'seed', 'data.xml');
+function resolveDataPath(): string {
+  const candidates = [
+    path.join(__dirname, '..', 'seed', 'data.xml'),
+    path.join(__dirname, '..', '..', 'src', 'seed', 'data.xml'),
+    path.join(process.cwd(), 'src', 'seed', 'data.xml'),
+    path.join(process.cwd(), 'dist', 'seed', 'data.xml'),
+    path.join(process.cwd(), 'server', 'src', 'seed', 'data.xml'),
+    path.join(process.cwd(), 'server', 'dist', 'seed', 'data.xml'),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return candidates[0];
+}
+
+const DATA_PATH = resolveDataPath();
 
 interface XmlUser {
   $: {
