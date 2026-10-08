@@ -8,7 +8,7 @@ export interface TokenPayload {
 
 export function signToken(payload: TokenPayload): string {
   return jwt.sign(payload, envConfig.jwtSecret, {
-    expiresIn: envConfig.jwtExpiresIn,
+    expiresIn: envConfig.jwtExpiresIn as any,
   });
 }
 

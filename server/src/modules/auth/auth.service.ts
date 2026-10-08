@@ -7,7 +7,7 @@ import { ApiError } from '../../utils/api-error';
 export interface LoginRequest {
   userId: string;
   password: string;
-  role: string;
+  role?: string;
 }
 
 export interface LoginResponse {
@@ -20,8 +20,8 @@ export class AuthService {
   constructor(private userRepo: IUserRepository) {}
 
   async login(dto: LoginRequest): Promise<LoginResponse> {
-    if (!dto.userId || !dto.password || !dto.role) {
-      throw new ApiError(400, 'User ID, password, and role are required.');
+    if (!dto.userId || !dto.password) {
+      throw new ApiError(400, 'User ID and password are required.');
     }
 
     const user = await this.userRepo.findById(dto.userId.trim());
@@ -36,13 +36,15 @@ export class AuthService {
     }
 
     const userRole = normalizeRole(user.role);
-    const requestedRole = normalizeRole(dto.role);
 
-    if (userRole !== requestedRole) {
-      throw new ApiError(
-        401,
-        `Incorrect role. User "${dto.userId}" is registered as "${userRole}", not "${dto.role}".`
-      );
+    if (dto.role) {
+      const requestedRole = normalizeRole(dto.role);
+      if (userRole !== requestedRole) {
+        throw new ApiError(
+          401,
+          `Incorrect role. User "${dto.userId}" is registered as "${userRole}", not "${dto.role}".`
+        );
+      }
     }
 
     if (user.status && user.status.toLowerCase() !== 'active') {
@@ -56,5 +58,13 @@ export class AuthService {
       token,
       user: toUserResponse(user),
     };
+  }
+
+  async getProfile(userId: string): Promise<UserResponse> {
+    const user = await this.userRepo.findById(userId);
+    if (!user) {
+      throw new ApiError(404, 'User not found.');
+    }
+    return toUserResponse(user);
   }
 }

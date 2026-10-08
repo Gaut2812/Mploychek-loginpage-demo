@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, switchMap, tap, finalize, catchError } from 'rxjs/operators';
+import { map, debounceTime, distinctUntilChanged, startWith, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import { UserService } from '../../../../core/services/user.service';
 import { RecordService } from '../../../../core/services/record.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -49,11 +49,14 @@ export class DashboardComponent implements OnInit {
     }
 
     const search$ = this.searchControl.valueChanges.pipe(
+      startWith(this.searchControl.value || ''),
       debounceTime(250),
       distinctUntilChanged()
     );
 
-    const access$ = this.accessFilterControl.valueChanges;
+    const access$ = this.accessFilterControl.valueChanges.pipe(
+      startWith(this.accessFilterControl.value || 'ALL')
+    );
 
     // Load records whenever refresh triggers or delay changes
     const fetchedRecords$ = this.refreshSubject.pipe(

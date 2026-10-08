@@ -75,13 +75,7 @@ The database is seeded with credentials for testing both roles:
 - **Role-Based Authorization Middleware**: Enforces authorization at the server boundary (`authMiddleware` and `roleMiddleware('admin')`).
 - **Storage Abstraction (Repository Pattern)**:
   - `IUserRepository` and `IRecordRepository` interfaces.
-  - `XmlUserRepository` / `XmlRecordRepository`: Fast local zero-config XML file persistence.
-  - `DynamoUserRepository` / `DynamoRecordRepository`: AWS DynamoDB repository for AWS deployment.
-  - Switchable via `STORAGE_TYPE=xml` or `STORAGE_TYPE=dynamodb` in `server/.env`.
-- **AWS DynamoDB Single-Table Schema**:
-  - Partition Key (`PK`): `USER#<userId>`
-  - Sort Key (`SK`): `PROFILE` for users, `RECORD#<recordId>` for document records
-  - Global Secondary Index (`GSI_Role`): Partition Key `role`, Sort Key `createdAt` for admin directory queries.
+  - `XmlUserRepository` / `XmlRecordRepository`: Fast local zero-config XML file persistence (`STORAGE_TYPE=xml` in `server/.env`).
 
 ### Criterion 3: UI Quality & Creativity
 - **Original Design System**: Not a Material or Bootstrap template. Custom typography using Google Fonts **Inter** and **Outfit**, and **JetBrains Mono** for IDs.

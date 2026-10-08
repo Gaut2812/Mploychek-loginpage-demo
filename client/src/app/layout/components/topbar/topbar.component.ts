@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UserService } from '../../../core/services/user.service';
-import { ThemeService } from '../../../core/services/theme.service';
+
 import { AuthService } from '../../../core/services/auth.service';
 import { User } from '../../../core/models/user.model';
 
@@ -16,7 +16,7 @@ export class TopbarComponent {
 
   constructor(
     private userService: UserService,
-    public themeService: ThemeService,
+
     private authService: AuthService
   ) {
     this.currentUser$ = this.userService.currentUser$;

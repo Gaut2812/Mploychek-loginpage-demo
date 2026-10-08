@@ -8,16 +8,8 @@ import { createRecordRoutes } from './modules/records/records.routes';
 import { IUserRepository, IRecordRepository } from './repositories/repository.interface';
 import { XmlUserRepository } from './repositories/xml.user.repository';
 import { XmlRecordRepository } from './repositories/xml.record.repository';
-import { DynamoUserRepository } from './repositories/dynamo.user.repository';
-import { DynamoRecordRepository } from './repositories/dynamo.record.repository';
 
 function createRepositories(): { userRepo: IUserRepository; recordRepo: IRecordRepository } {
-  if (envConfig.storageType === 'dynamodb') {
-    return {
-      userRepo: new DynamoUserRepository(),
-      recordRepo: new DynamoRecordRepository(),
-    };
-  }
   return {
     userRepo: new XmlUserRepository(),
     recordRepo: new XmlRecordRepository(),

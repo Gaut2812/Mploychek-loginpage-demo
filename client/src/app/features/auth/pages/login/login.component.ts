@@ -5,7 +5,7 @@ import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserService } from '../../../../core/services/user.service';
 import { ToastService } from '../../../../core/services/toast.service';
-import { ThemeService } from '../../../../core/services/theme.service';
+
 import { LoginResponse } from '../../../../core/models/auth.model';
 
 @Component({
@@ -19,14 +19,13 @@ export class LoginComponent implements OnInit {
   isSubmitting: boolean = false;
   showPassword: boolean = false;
   serverError: string = '';
-  inconsistentWarning: string = '';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private userService: UserService,
     private toastService: ToastService,
-    public themeService: ThemeService,
+
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -47,66 +46,31 @@ export class LoginComponent implements OnInit {
       role: ['General User', [Validators.required]],
     });
 
-    // Auto-align role when typing known demo IDs
     this.loginForm.get('userId')?.valueChanges.subscribe((rawVal: string) => {
       const val = (rawVal || '').trim().toLowerCase();
       this.serverError = '';
-
       if (val === 'admin01') {
-        if (this.loginForm.get('role')?.value !== 'Administrator') {
-          this.loginForm.patchValue({ role: 'Administrator' }, { emitEvent: false });
-        }
-        this.inconsistentWarning = '';
+        this.loginForm.patchValue({ role: 'Admin' }, { emitEvent: false });
       } else if (val === 'user01' || val === 'user02') {
-        if (this.loginForm.get('role')?.value !== 'General User') {
-          this.loginForm.patchValue({ role: 'General User' }, { emitEvent: false });
-        }
-        this.inconsistentWarning = '';
-      } else {
-        this.checkConsistency();
+        this.loginForm.patchValue({ role: 'General User' }, { emitEvent: false });
       }
       this.cdr.markForCheck();
     });
 
-    this.loginForm.get('role')?.valueChanges.subscribe(() => {
+    this.loginForm.valueChanges.subscribe(() => {
       this.serverError = '';
-      this.checkConsistency();
       this.cdr.markForCheck();
     });
   }
 
-  private checkConsistency(): void {
-    const uid = (this.loginForm.get('userId')?.value || '').trim().toLowerCase();
-    const role = this.loginForm.get('role')?.value;
-
-    if (uid === 'admin01' && role === 'General User') {
-      this.inconsistentWarning = 'Note: admin01 is registered as an Administrator.';
-    } else if ((uid === 'user01' || uid === 'user02') && role === 'Administrator') {
-      this.inconsistentWarning = 'Note: user accounts require General User role.';
-    } else {
-      this.inconsistentWarning = '';
-    }
+  selectRole(role: 'General User' | 'Admin'): void {
+    this.loginForm.patchValue({ role });
+    this.serverError = '';
+    this.cdr.markForCheck();
   }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
-    this.cdr.markForCheck();
-  }
-
-  fillDemo(userId: string, pass: string, role: 'General User' | 'Administrator'): void {
-    this.serverError = '';
-    this.inconsistentWarning = '';
-    this.loginForm.patchValue({
-      userId,
-      password: pass,
-      role,
-    });
-    this.cdr.markForCheck();
-  }
-
-  selectRole(role: 'General User' | 'Administrator'): void {
-    this.loginForm.patchValue({ role });
-    this.checkConsistency();
     this.cdr.markForCheck();
   }
 
@@ -140,10 +104,14 @@ export class LoginComponent implements OnInit {
             `Welcome back, ${displayName}!`,
             'Authentication Successful'
           );
-          this.router.navigate(['/dashboard']);
+          if (this.authService.isAdmin()) {
+            this.router.navigate(['/admin']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: (err: { error?: { error?: string } }) => {
-          const message = err.error?.error || 'Invalid credentials or role selection.';
+          const message = err.error?.error || 'Invalid user ID or password.';
           this.serverError = message;
           this.toastService.error(message, 'Login Failed');
           this.cdr.markForCheck();
@@ -157,9 +125,5 @@ export class LoginComponent implements OnInit {
 
   get passwordControl() {
     return this.loginForm.get('password');
-  }
-
-  get roleControl() {
-    return this.loginForm.get('role');
   }
 }

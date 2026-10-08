@@ -17,4 +17,14 @@ export class AuthController {
       next(err);
     }
   };
+
+  getProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = req.user!.userId;
+      const user = await this.authService.getProfile(userId);
+      res.status(200).json({ user });
+    } catch (err) {
+      next(err);
+    }
+  };
 }

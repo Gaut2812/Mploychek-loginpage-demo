@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { BehaviorSubject, Observable, combineLatest, of } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, switchMap, tap, finalize, catchError } from 'rxjs/operators';
+import { map, debounceTime, distinctUntilChanged, startWith, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import { UserService } from '../../../../core/services/user.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { User, CreateUserDto, UpdateUserDto } from '../../../../core/models/user.model';
@@ -52,11 +52,14 @@ export class AdminComponent implements OnInit {
     this.initForm();
 
     const search$ = this.searchControl.valueChanges.pipe(
+      startWith(this.searchControl.value || ''),
       debounceTime(250),
       distinctUntilChanged()
     );
 
-    const role$ = this.roleFilterControl.valueChanges;
+    const role$ = this.roleFilterControl.valueChanges.pipe(
+      startWith(this.roleFilterControl.value || 'ALL')
+    );
 
     const fetchedUsers$ = this.refreshSubject.pipe(
       tap(() => {
