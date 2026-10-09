@@ -16,6 +16,24 @@ export class UserService {
     @Inject(API_URL) private apiUrl: string
   ) {}
 
+  /**
+   * Normalizes the base API URL to ensure it points to the API root without trailing slash.
+   * If apiUrl already ends with '/api', it is preserved.
+   * If apiUrl does not end with '/api', '/api' is appended.
+   * Prevents duplicating '/api' when apiUrl already includes it.
+   */
+  private get apiBase(): string {
+    const base = (this.apiUrl || '').trim().replace(/\/+$/, '');
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+
+  /**
+   * Base endpoint for user operations (/api/users).
+   */
+  private get usersEndpoint(): string {
+    return `${this.apiBase}/users`;
+  }
+
   public get currentUser(): User | null {
     return this.currentUserSubject.value;
   }
@@ -29,7 +47,7 @@ export class UserService {
    * Calls GET /api/users/me and populates the currentUser$ stream.
    */
   loadCurrentUser(): Observable<User | null> {
-    return this.http.get<User>(`${this.apiUrl}/users/me`).pipe(
+    return this.http.get<User>(`${this.usersEndpoint}/me`).pipe(
       tap((user) => this.currentUserSubject.next(user)),
       catchError(() => {
         this.currentUserSubject.next(null);
@@ -46,7 +64,7 @@ export class UserService {
     if (delay !== undefined && delay > 0) {
       params = params.set('delay', delay.toString());
     }
-    return this.http.get<User[]>(`${this.apiUrl}/users`, { params });
+    return this.http.get<User[]>(this.usersEndpoint, { params });
   }
 
   /**
@@ -57,7 +75,7 @@ export class UserService {
     if (delay !== undefined && delay > 0) {
       params = params.set('delay', delay.toString());
     }
-    return this.http.post<User>(`${this.apiUrl}/users`, dto, { params });
+    return this.http.post<User>(this.usersEndpoint, dto, { params });
   }
 
   /**
@@ -68,7 +86,7 @@ export class UserService {
     if (delay !== undefined && delay > 0) {
       params = params.set('delay', delay.toString());
     }
-    return this.http.put<User>(`${this.apiUrl}/users/${userId}`, dto, { params });
+    return this.http.put<User>(`${this.usersEndpoint}/${userId}`, dto, { params });
   }
 
   /**
@@ -79,6 +97,6 @@ export class UserService {
     if (delay !== undefined && delay > 0) {
       params = params.set('delay', delay.toString());
     }
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/users/${userId}`, { params });
+    return this.http.delete<{ message: string }>(`${this.usersEndpoint}/${userId}`, { params });
   }
 }

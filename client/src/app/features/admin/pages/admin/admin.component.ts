@@ -79,9 +79,10 @@ export class AdminComponent implements OnInit {
             this.requestDuration = duration;
             this.requestStatus = 'success';
           }),
-          catchError(() => {
+          catchError((err) => {
             this.requestStatus = 'error';
-            this.toastService.error('Failed to load user directory.');
+            const msg = this.extractErrorMessage(err, 'Failed to load user directory.');
+            this.toastService.error(msg, 'Directory Error');
             return of([]);
           }),
           finalize(() => {
@@ -226,7 +227,8 @@ export class AdminComponent implements OnInit {
             this.reloadUsers();
           },
           error: (err) => {
-            this.toastService.error(err.error?.error || 'Failed to create user.');
+            const message = this.extractErrorMessage(err, 'Failed to create user.');
+            this.toastService.error(message, 'Creation Failed');
           },
         });
     } else {
@@ -263,7 +265,8 @@ export class AdminComponent implements OnInit {
             this.reloadUsers();
           },
           error: (err) => {
-            this.toastService.error(err.error?.error || 'Failed to update user.');
+            const message = this.extractErrorMessage(err, 'Failed to update user.');
+            this.toastService.error(message, 'Update Failed');
           },
         });
     }
@@ -307,12 +310,80 @@ export class AdminComponent implements OnInit {
           this.reloadUsers();
         },
         error: (err) => {
-          this.toastService.error(err.error?.error || 'Failed to delete user.');
+          const message = this.extractErrorMessage(err, 'Failed to delete user.');
+          this.toastService.error(message, 'Delete Failed');
         },
       });
   }
 
   trackByUserId(_index: number, item: User): string {
     return item.userId;
+  }
+
+  /**
+   * Extracts informative error messages from backend responses or HTTP errors.
+   */
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) {
+      return fallback;
+    }
+
+    // Backend ApiError JSON response: { error: "..." }
+    if (err.error && typeof err.error === 'object') {
+      if (typeof err.error.error === 'string' && err.error.error.trim()) {
+        return err.error.error.trim();
+      }
+      if (typeof err.error.message === 'string' && err.error.message.trim()) {
+        return err.error.message.trim();
+      }
+    }
+
+    // Plain text or HTML error response from Express
+    if (typeof err.error === 'string' && err.error.trim()) {
+      const trimmed = err.error.trim();
+      if (!trimmed.startsWith('<')) {
+        return trimmed;
+      }
+      const preMatch = trimmed.match(/<pre>(.*?)<\/pre>/i);
+      if (preMatch && preMatch[1]) {
+        return preMatch[1].replace(/<[^>]+>/g, '').trim();
+      }
+    }
+
+    // Specific HTTP status code diagnostics
+    if (err.status === 404) {
+      const urlInfo = err.url ? ` (${err.url})` : '';
+      return `Endpoint not found (404)${urlInfo}. Please verify the /api/users backend route.`;
+    }
+
+    if (err.status === 409) {
+      return 'User ID already exists. Please choose a different User ID.';
+    }
+
+    if (err.status === 400) {
+      return 'Invalid user data provided. Please check all required fields.';
+    }
+
+    if (err.status === 403) {
+      return 'Access denied (403). Administrator permissions are required.';
+    }
+
+    if (err.status === 401) {
+      return 'Session expired (401). Please log in again.';
+    }
+
+    if (err.status === 0) {
+      return 'Network error: Cannot reach the backend server. Please verify backend connection and CORS.';
+    }
+
+    if (err.status >= 500) {
+      return `Server error (${err.status}): Internal server error occurred.`;
+    }
+
+    if (err.message) {
+      return err.message;
+    }
+
+    return fallback;
   }
 }

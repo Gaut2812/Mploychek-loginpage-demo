@@ -13,6 +13,11 @@ export class RecordService {
     @Inject(API_URL) private apiUrl: string
   ) {}
 
+  private get apiBase(): string {
+    const base = (this.apiUrl || '').trim().replace(/\/+$/, '');
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+
   /**
    * Fetch records for the currently authenticated user.
    * Role-based filtering is strictly performed on the backend:
@@ -26,6 +31,6 @@ export class RecordService {
     if (delay !== undefined && delay > 0) {
       params = params.set('delay', delay.toString());
     }
-    return this.http.get<RecordItem[]>(`${this.apiUrl}/records`, { params });
+    return this.http.get<RecordItem[]>(`${this.apiBase}/records`, { params });
   }
 }

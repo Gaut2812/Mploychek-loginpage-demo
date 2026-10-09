@@ -17,19 +17,23 @@ export class AuthService {
     @Inject(API_URL) private apiUrl: string
   ) {}
 
-  
-login(credentials: LoginCredentials): Observable<LoginResponse> {
-  return this.http.post<LoginResponse>(
-    `${this.apiUrl}/api/auth/login`,
-    credentials
-  ).pipe(
-    tap((res) => {
-      if (res.token) {
-        this.setToken(res.token);
-      }
-    })
-  );
-}
+  private get apiBase(): string {
+    const base = (this.apiUrl || '').trim().replace(/\/+$/, '');
+    return base.endsWith('/api') ? base : `${base}/api`;
+  }
+
+  login(credentials: LoginCredentials): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(
+      `${this.apiBase}/auth/login`,
+      credentials
+    ).pipe(
+      tap((res) => {
+        if (res.token) {
+          this.setToken(res.token);
+        }
+      })
+    );
+  }
 
 
   logout(): void {
