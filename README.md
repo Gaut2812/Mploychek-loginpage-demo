@@ -1,6 +1,6 @@
 # MployChek — Single Page Application
 
-> **Enterprise Access Governance & Record Management Portal**  
+> **Login page demo Portal**  
 > Full-Stack Angular 17 & Node.js/Express application with XML storage, role-based access control, and async latency simulation.
 
 ---
