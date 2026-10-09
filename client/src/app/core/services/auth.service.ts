@@ -17,15 +17,20 @@ export class AuthService {
     @Inject(API_URL) private apiUrl: string
   ) {}
 
-  login(credentials: LoginCredentials): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
-      tap((res) => {
-        if (res.token) {
-          this.setToken(res.token);
-        }
-      })
-    );
-  }
+  
+login(credentials: LoginCredentials): Observable<LoginResponse> {
+  return this.http.post<LoginResponse>(
+    `${this.apiUrl}/api/auth/login`,
+    credentials
+  ).pipe(
+    tap((res) => {
+      if (res.token) {
+        this.setToken(res.token);
+      }
+    })
+  );
+}
+
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
